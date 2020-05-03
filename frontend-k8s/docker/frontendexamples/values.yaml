@@ -1,0 +1,17 @@
+# Default values for frontendexamples.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+ingress:
+  name: web
+  enabled: true
+  annotations:
+    APP-TYPE: "frontend"
+  ### 监听的域名
+  hosts:
+    - host: test.ca84fbee0d0894697b7bf1695cdf62e95.cn-shanghai.alicontainer.com
+      paths:
+        - "/"

@@ -1,0 +1,54 @@
+{{- $ingress := .Values.ingress }}
+{{- $top := . -}}
+{{- if $ingress.enabled }}
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ include "frontendexamples.fullname" . }}-{{ $ingress.name }}
+  labels:
+    {{- include "frontendexamples.labels" . | nindent 4 }}
+  {{- with $ingress.annotations }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      ### 默认重定向到首页
+      return 302 $scheme://$host/index.html;
+    nginx.ingress.kubernetes.io/server-snippet: |
+        location = / {
+          return 302 $scheme://$host/index.html;
+        }
+      
+        {{- $cdnHost := $top.Values.cdnHost -}}
+        {{- $cdnPrefix := $top.Values.cdnPrefix -}}
+        {{- range $top.Values.htmlList -}}
+
+        location = {{ . }} {
+          rewrite ^(.*)$ /{{ $cdnPrefix }}{{ . }} break; 
+          proxy_pass {{ $cdnHost }};
+          proxy_buffering on;
+          proxy_buffer_size  128k;
+          proxy_buffers 100  128k;
+          proxy_cache        auth_cache;
+          proxy_cache_key {{ $cdnPrefix }};
+          proxy_cache_valid      200  1d;
+          proxy_cache_use_stale  error timeout invalid_header updating
+                                 http_500 http_502 http_503 http_504;
+        }
+        {{- end -}}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+  {{- range $ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+          - path: {{ . }}
+            backend:
+              serviceName: none
+              servicePort: 80
+        {{- end }}
+  {{- end }}
+{{- end }}
