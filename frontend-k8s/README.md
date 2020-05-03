@@ -1,6 +1,14 @@
 # 前端k8s部署示例
 
+### 依赖
+- node >= 11
+- helm
+
 ### 运行
+```
+yarn
+```
+
 ```
 BUCKET="bp-stage" \
 BUCKET_HOST="//bg-stage.wkcoding.com/" \
